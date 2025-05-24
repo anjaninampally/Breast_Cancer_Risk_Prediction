@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+
+{% block title %}About{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card p-4">
+            <h3 class="text-primary text-center mb-3">About This Application</h3>
+            <p>
+                This Breast Cancer Detection System uses machine learning to predict whether a tumor is benign or malignant based on input features derived from a biopsy.
+            </p>
+            <p>
+                The goal is to assist medical professionals with faster, more consistent diagnostic support. However, this tool is not a replacement for professional medical advice or testing.
+            </p>
+            <div class="text-center mt-4">
+                <a href="{{ url_for('home') }}" class="btn btn-primary">Back to Home</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

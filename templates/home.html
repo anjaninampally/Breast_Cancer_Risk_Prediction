@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container my-5">
+    <div class="text-center mb-5">
+        <h1 class="text-pink">Welcome to Breast Cancer Risk Predictor</h1>
+        <p class="lead">Learn, Assess & Act – Take control of your health.</p>
+    </div>
+
+    <div class="row g-4">
+        <div class="col-md-6">
+            <div class="card shadow p-4">
+                <h4>About Breast Cancer</h4>
+                <p>Breast cancer is one of the most common cancers among women. Early detection and prevention can save lives. This tool allows you to assess your risk and learn about preventive actions.</p>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="card shadow p-4">
+                <h4>Prevention & Awareness</h4>
+                <ul>
+                    <li>Perform regular self-examinations</li>
+                    <li>Get routine mammograms</li>
+                    <li>Maintain a healthy lifestyle</li>
+                    <li>Limit alcohol and quit smoking</li>
+                    <li>Exercise regularly</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="col-md-12">
+            <div class="card shadow p-4 mt-4">
+                <h4>How Our Predictor Works</h4>
+                <p>Our system uses machine learning (SVM model) to predict your breast cancer risk based on various features. All you need to do is input the required values on the prediction page.</p>
+                <a href="{{ url_for('predict') }}" class="btn btn-pink mt-3">Start Prediction</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

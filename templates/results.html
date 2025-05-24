@@ -1,0 +1,48 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container my-4">
+  <div class="card p-4 shadow-soft">
+    <h4 class="card-title mb-3"><i class="bi bi-bar-chart-fill"></i> Prediction Result</h4>
+
+    <p><strong>Prediction:</strong> 
+      {% if prediction == 0 %}
+        <span class="text-success">Benign</span>
+      {% else %}
+        <span class="text-danger">Malignant</span>
+      {% endif %}
+    </p>
+    <p><strong>Confidence:</strong> {{ confidence }}%</p>
+
+    <h5 class="mt-4"><i class="bi bi-list-ul"></i> Feature Summary</h5>
+    <div class="table-responsive">
+      <table class="table table-bordered table-hover">
+        <thead class="table-light">
+          <tr>
+            <th>#</th>
+            <th>Feature</th>
+            <th>Value</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% set labels = [
+            'Clump Thickness', 'Uniform Cell Size', 'Uniform Cell Shape',
+            'Marginal Adhesion', 'Single Epithelial Size', 'Bare Nuclei',
+            'Bland Chromatin', 'Normal Nucleoli', 'Mitoses'
+          ] %}
+          {% for feature in features %}
+          <tr>
+            <td>{{ loop.index }}</td>
+            <td>{{ labels[loop.index0] }}</td>
+            <td>{{ feature }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <a href="/dashboard" class="btn btn-outline-secondary mt-3">
+      <i class="bi bi-arrow-left-circle"></i> Back to Dashboard
+    </a>
+  </div>
+</div>
+{% endblock %}

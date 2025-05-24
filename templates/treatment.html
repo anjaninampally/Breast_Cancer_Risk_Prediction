@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container my-5">
+    <h2 class="text-pink mb-4">💊 Breast Cancer Treatment Options</h2>
+
+    <div class="card shadow p-4 mb-4">
+        <h4>Surgery</h4>
+        <p>Includes lumpectomy or mastectomy. Used in early stages or combined with other treatments.</p>
+    </div>
+
+    <div class="card shadow p-4 mb-4">
+        <h4>Radiation Therapy</h4>
+        <p>Uses high-energy rays to kill cancer cells. Typically used after surgery.</p>
+    </div>
+
+    <div class="card shadow p-4 mb-4">
+        <h4>Chemotherapy</h4>
+        <p>Drugs that travel through the bloodstream to kill cancer cells. Recommended when risk of spread is high.</p>
+    </div>
+
+    <div class="card shadow p-4 mb-4">
+        <h4>Hormonal Therapy</h4>
+        <p>Used for hormone-receptor-positive cancers to block hormones needed for cancer growth.</p>
+    </div>
+
+    <div class="card shadow p-4 mb-4">
+        <h4>Targeted Therapy</h4>
+        <p>Targets specific proteins (e.g. HER2) on cancer cells. Less harmful to normal cells.</p>
+    </div>
+
+    <div class="card shadow p-4 mb-4">
+        <h4>Support & Lifestyle</h4>
+        <p>Support groups, diet, yoga, and counseling help with recovery and well-being.</p>
+    </div>
+
+    <div class="text-center mt-4">
+        <a href="{{ url_for('dashboard') }}" class="btn btn-outline-pink">← Back to Dashboard</a>
+    </div>
+</div>
+{% endblock %}

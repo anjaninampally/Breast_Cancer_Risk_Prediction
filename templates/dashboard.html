@@ -1,0 +1,107 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container py-4">
+    <h2 class="mb-4 text-center"><i class="bi bi-bar-chart-fill"></i> Dashboard</h2>
+
+    <!-- Summary Cards -->
+    <div class="row text-center mb-4">
+        <div class="col-md-4">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <h5>Total Predictions</h5>
+                    <h2 class="text-primary">{{ total_predictions }}</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <h5>Malignant</h5>
+                    <h2 class="text-danger">{{ malignant_count }}</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <h5>Benign</h5>
+                    <h2 class="text-success">{{ benign_count }}</h2>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Dashboard Charts -->
+    <div class="row">
+        <div class="col-md-6 mb-4">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <h5 class="text-center mb-3">Prediction Trend Over Time</h5>
+                    {{ plot_trend | safe }}
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6 mb-4">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <h5 class="text-center mb-3">Confidence Score Distribution</h5>
+                    {{ plot_confidence | safe }}
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6 mb-4">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <h5 class="text-center mb-3">Top Features Influencing Latest Prediction</h5>
+                    {{ plot_features | safe }}
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6 mb-4">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <h5 class="text-center mb-3">Prediction Distribution</h5>
+                    {{ plot_distribution | safe }}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Predictions Table -->
+    {% if recent_predictions %}
+    <div class="card shadow-sm mb-4">
+        <div class="card-body">
+            <h5 class="text-center mb-3">Recent Predictions</h5>
+            <div class="table-responsive">
+                <table class="table table-bordered table-hover">
+                    <thead class="table-light">
+                        <tr>
+                            <th>#</th>
+                            <th>Prediction</th>
+                            <th>Confidence</th>
+                            <th>Date</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for pred in recent_predictions %}
+                        <tr>
+                            <td>{{ loop.index }}</td>
+                            <td>
+                                {% if pred.prediction == 'Malignant' %}
+                                    <span class="text-danger">Malignant</span>
+                                {% else %}
+                                    <span class="text-success">Benign</span>
+                                {% endif %}
+                            </td>
+                            <td>{{ pred.confidence }}%</td>
+                            <td>{{ pred.timestamp }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

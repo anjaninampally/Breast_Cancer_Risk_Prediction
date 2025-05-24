@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+
+{% block title %}Breast Cancer Detection - Predict{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-10">
+        <div class="card shadow rounded-4 p-4">
+            <div class="card-body">
+                <h2 class="text-center mb-4">Breast Cancer Detection</h2>
+
+                <div class="row">
+                    <!-- Left side: Image -->
+                    <div class="col-md-6 d-flex align-items-center">
+                        <img src="{{ url_for('static', filename='image.jpg') }}" class="img-fluid rounded" alt="Breast Cancer Awareness">
+                    </div>
+
+                    <!-- Right side: Prediction Form -->
+                    <div class="col-md-6">
+                        <form method="POST" action="{{ url_for('predict') }}">
+                            <h4 class="mb-3 fw-semibold">Enter Cell Details (1 to 10)</h4>
+
+                            {% for field in [
+                                'Clump Thickness', 'Uniform Cell Size', 'Uniform Cell Shape',
+                                'Marginal Adhesion', 'Single Epithelial Size', 'Bare Nuclei',
+                                'Bland Chromatin', 'Normal Nucleoli', 'Mitoses'
+                            ] %}
+                                <div class="mb-3">
+                                    <label class="form-label">{{ field }}</label>
+                                    <input type="number" name="{{ field|lower|replace(' ', '_') }}" class="form-control feature-input" min="1" max="10" step="1" required>
+                                </div>
+                            {% endfor %}
+
+                            <div class="d-grid mt-3">
+                                <button type="submit" class="btn btn-lg" style="background-color: #ff69b4; color: white; border: none; border-radius: 8px; padding: 10px 20px;">
+                                    <i class="bi bi-heart-pulse-fill me-2"></i> Predict
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- JS: Arrow key increment/decrement -->
+<script>
+    document.querySelectorAll('.feature-input').forEach(input => {
+        input.addEventListener('keydown', function(e) {
+            const current = parseInt(this.value || 5);
+            if (e.key === "ArrowUp") {
+                e.preventDefault();
+                if (current < 10) this.value = current + 1;
+            }
+            if (e.key === "ArrowDown") {
+                e.preventDefault();
+                if (current > 1) this.value = current - 1;
+            }
+        });
+    });
+</script>
+{% endblock %}
