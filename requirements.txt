@@ -6,3 +6,4 @@ werkzeug==2.3.8
 flask-login==0.6.3
 plotly==5.21.0
 flask-session==0.4.0
+gunicorn
