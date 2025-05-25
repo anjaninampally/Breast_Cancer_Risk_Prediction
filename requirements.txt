@@ -1,7 +1,7 @@
 Flask==2.3.2
 numpy==1.26.4
 pandas==2.2.2
-scikit-learn==1.4.2
+scikit-learn==0.23.2
 werkzeug==2.3.8
 flask-login==0.6.3
 plotly==5.21.0
