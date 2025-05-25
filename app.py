@@ -15,9 +15,6 @@ from flask_login import login_required
 from flask_login import LoginManager
 from flask_login import current_user
 import pytz
-from openai import OpenAI
-import os
-from dotenv import load_dotenv
 from datetime import date
 app = Flask(__name__)
 
