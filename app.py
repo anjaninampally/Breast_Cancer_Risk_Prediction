@@ -50,8 +50,6 @@ class User(UserMixin):
 app.secret_key = os.environ.get('SECRET_KEY') or os.urandom(24)
 app.config['SESSION_TYPE'] = 'filesystem'
 app.permanent_session_lifetime = timedelta(days=7)
-load_dotenv()  # Load variables from .env
-client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 
 
