@@ -1,92 +1,115 @@
-{% extends 'base.html' %}
+{% extends "base.html" %}
+
+{% block title %}Dashboard{% endblock %}
+
 {% block content %}
-<div class="container py-4">
-    <h2 class="mb-4 text-center"><i class="bi bi-bar-chart-fill"></i> Dashboard</h2>
+<link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+<script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+<script>AOS.init();</script>
+
+
+<div class="container py-5">
+    <h1 class="mb-4 text-center" data-aos="fade-down">Your Breast Cancer Risk Dashboard</h1>
+
+    <!-- Filter Form -->
+    <form method="get" action="{{ url_for('dashboard') }}" class="mb-4" data-aos="fade-up">
+        <div class="row g-3 justify-content-center">
+            <div class="col-md-4">
+                <select name="filter_type" class="form-select" onchange="this.form.submit()">
+                    <option value="">-- Filter by Type --</option>
+                    <option value="Malignant" {% if selected_filter == 'Malignant' %}selected{% endif %}>Malignant</option>
+                    <option value="Benign" {% if selected_filter == 'Benign' %}selected{% endif %}>Benign</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <a href="{{ url_for('dashboard') }}" class="btn btn-secondary w-100">Reset</a>
+            </div>
+        </div>
+    </form>
 
     <!-- Summary Cards -->
-    <div class="row text-center mb-4">
+    <div class="row mb-5" data-aos="fade-up" data-aos-delay="100">
         <div class="col-md-4">
-            <div class="card shadow-sm">
+            <div class="card text-white bg-primary h-100">
                 <div class="card-body">
-                    <h5>Total Predictions</h5>
-                    <h2 class="text-primary">{{ total_predictions }}</h2>
+                    <h5 class="card-title">Total Predictions</h5>
+                    <p class="card-text display-5">{{ total_predictions }}</p>
                 </div>
             </div>
         </div>
         <div class="col-md-4">
-            <div class="card shadow-sm">
+            <div class="card text-white bg-danger h-100">
                 <div class="card-body">
-                    <h5>Malignant</h5>
-                    <h2 class="text-danger">{{ malignant_count }}</h2>
+                    <h5 class="card-title">Malignant Cases</h5>
+                    <p class="card-text display-5">{{ malignant_count }}</p>
                 </div>
             </div>
         </div>
         <div class="col-md-4">
-            <div class="card shadow-sm">
+            <div class="card text-white bg-success h-100">
                 <div class="card-body">
-                    <h5>Benign</h5>
-                    <h2 class="text-success">{{ benign_count }}</h2>
+                    <h5 class="card-title">Benign Cases</h5>
+                    <p class="card-text display-5">{{ benign_count }}</p>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Dashboard Charts -->
-    <div class="row">
-        <div class="col-md-6 mb-4">
-            <div class="card shadow-sm">
+    <!-- Charts Section -->
+    <div class="row mb-5">
+        <div class="col-md-6 mb-4" data-aos="fade-right">
+            <div class="card h-100">
                 <div class="card-body">
-                    <h5 class="text-center mb-3">Prediction Trend Over Time</h5>
-                    {{ plot_trend | safe }}
+                    <h5 class="card-title">Prediction Trend</h5>
+                    <div>{{ plot_trend | safe }}</div>
                 </div>
             </div>
         </div>
-        <div class="col-md-6 mb-4">
-            <div class="card shadow-sm">
+        <div class="col-md-6 mb-4" data-aos="fade-left">
+            <div class="card h-100">
                 <div class="card-body">
-                    <h5 class="text-center mb-3">Confidence Score Distribution</h5>
-                    {{ plot_confidence | safe }}
+                    <h5 class="card-title">Confidence Scores</h5>
+                    <div>{{ plot_confidence | safe }}</div>
                 </div>
             </div>
         </div>
-        <div class="col-md-6 mb-4">
-            <div class="card shadow-sm">
+        <div class="col-md-6 mb-4" data-aos="fade-right">
+            <div class="card h-100">
                 <div class="card-body">
-                    <h5 class="text-center mb-3">Top Features Influencing Latest Prediction</h5>
-                    {{ plot_features | safe }}
+                    <h5 class="card-title">Feature Importance</h5>
+                    <div>{{ plot_features | safe }}</div>
                 </div>
             </div>
         </div>
-        <div class="col-md-6 mb-4">
-            <div class="card shadow-sm">
+        <div class="col-md-6 mb-4" data-aos="fade-left">
+            <div class="card h-100">
                 <div class="card-body">
-                    <h5 class="text-center mb-3">Prediction Distribution</h5>
-                    {{ plot_distribution | safe }}
+                    <h5 class="card-title">Distribution Overview</h5>
+                    <div>{{ plot_distribution | safe }}</div>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Recent Predictions Table -->
-    {% if recent_predictions %}
-    <div class="card shadow-sm mb-4">
-        <div class="card-body">
-            <h5 class="text-center mb-3">Recent Predictions</h5>
-            <div class="table-responsive">
-                <table class="table table-bordered table-hover">
-                    <thead class="table-light">
-                        <tr>
-                            <th>#</th>
-                            <th>Prediction</th>
-                            <th>Confidence</th>
-                            <th>Date</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for pred in recent_predictions %}
+    <!-- Recent Predictions -->
+    <div class="table-container mb-5" data-aos="fade-up">
+        <h5 class="mb-3">Recent Predictions</h5>
+        {% if recent_predictions %}
+        <div class="table-responsive">
+            <table class="table table-bordered table-hover">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Prediction</th>
+                        <th>Confidence</th>
+                        <th>Date</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for pred in recent_predictions %}
                         <tr>
                             <td>{{ loop.index }}</td>
-                            <td>
+                            <td class="prediction-text" data-prediction="{{ pred.prediction }}">
                                 {% if pred.prediction == 'Malignant' %}
                                     <span class="text-danger">Malignant</span>
                                 {% else %}
@@ -94,14 +117,68 @@
                                 {% endif %}
                             </td>
                             <td>{{ pred.confidence }}%</td>
-                            <td>{{ pred.timestamp }}</td>
+                            <td>{{ pred.timestamp}}</td>
                         </tr>
                         {% endfor %}
-                    </tbody>
-                </table>
-            </div>
+                </tbody>
+            </table>
         </div>
+        {% else %}
+        <p class="text-muted">No predictions found.</p>
+        {% endif %}
     </div>
-    {% endif %}
 </div>
+
+<!-- Inline Table Styling -->
+<style>
+.table-container {
+  padding: 20px;
+  background-color: #fff;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: 'Segoe UI', sans-serif;
+  font-size: 16px;
+}
+
+.table thead {
+  background-color: #f8f9fa;
+}
+
+.table thead th {
+  padding: 12px 15px;
+  text-align: left;
+  font-weight: 600;
+  color: #333;
+  border-bottom: 2px solid #dee2e6;
+}
+
+.table tbody td {
+  padding: 12px 15px;
+  border-bottom: 1px solid #dee2e6;
+  color: #333;
+}
+
+.table tbody tr:nth-child(even) {
+  background-color: #f9f9f9;
+}
+
+.table tbody tr:hover {
+  background-color: #eef2f7;
+}
+
+.table .benign {
+  color: #2e7d32;
+  font-weight: 500;
+}
+
+.table .malignant {
+  color: #c62828;
+  font-weight: 500;
+}
+</style>
 {% endblock %}

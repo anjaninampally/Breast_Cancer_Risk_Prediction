@@ -1,39 +1,160 @@
 {% extends "base.html" %}
 {% block content %}
-<div class="container my-5">
-    <div class="text-center mb-5">
-        <h1 class="text-pink">Welcome to Breast Cancer Risk Predictor</h1>
-        <p class="lead">Learn, Assess & Act – Take control of your health.</p>
+
+<style>
+    body {
+        background: linear-gradient(to right, #f8fbff, #e0f7fa);
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+    .container {
+        max-width: 900px;
+        margin: auto;
+    }
+    .card {
+        border-radius: 15px;
+        border: none;
+        background: white;
+        transition: all 0.3s ease;
+    }
+    .card:hover {
+        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
+    }
+    .btn-pink {
+        background-color: #ff4081;
+        color: white;
+        border: none;
+    }
+    .btn-pink:hover {
+        background-color: #e91e63;
+    }
+    h2, h4 {
+        color: #2c3e50;
+    }
+    .alert {
+        border-radius: 10px;
+        font-size: 0.95rem;
+    }
+</style>
+<div class="container mt-5">
+    <h2>Welcome, {{ patient.name if patient else 'Guest' }}!</h2>
+
+    {% if last_prediction %}
+    <div class="card mt-4 p-4 shadow-sm">
+        <h4>🩺 Your Latest Prediction</h4>
+        <p><strong>Result:</strong> {{ last_prediction.prediction }}</p>
+        <p><strong>Confidence:</strong> {{ last_prediction.confidence }}%</p>
+        <p><strong>Date:</strong> {{ last_prediction.timestamp }}</p>
+
+        {% if health_status == 'High' %}
+            <div class="alert alert-danger mt-3">
+                🚨 High Risk Detected. Consider consulting a specialist.
+            </div>
+        {% else %}
+            <div class="alert alert-success mt-3">
+                ✅ Risk appears low. Maintain regular checkups.
+            </div>
+        {% endif %}
+
+        {% if 'FamilyHistory' in last_prediction and last_prediction['FamilyHistory'] == 'Yes' %}
+            <div class="alert alert-warning mt-2">
+                📌 Note: Review your family medical history with a professional.
+            </div>
+        {% endif %}
+    </div>
+    {% else %}
+    <div class="alert alert-info mt-4">
+        No predictions found yet. Head to the Prediction page to get started!
+    </div>
+    {% endif %}
+
+    <!-- 👤 Patient Info Section -->
+    <div class="card mt-5 p-4 shadow-sm">
+        <h4>👤 Your Patient Information</h4>
+
+        {% if patient %}
+            <p><strong>Name:</strong> {{ patient.name }}</p>
+            <p><strong>Parent's Name:</strong> {{ patient.parent_name }}</p>
+            <p><strong>Date of Birth:</strong> {{ patient.dob }}</p>
+            <p><strong>Weight:</strong> {{ patient.weight }} kg</p>
+            <p><strong>Height:</strong> {{ patient.height }} cm</p>
+            <p><strong>Previous Health Issues:</strong> {{ patient.previous_health_issues or 'None' }}</p>
+            <p><strong>Parent's Health History (Breast Cancer):</strong> {{ patient.parent_health_issues or 'None' }}</p>
+            <a href="{{ url_for('edit_info') }}" class="btn btn-pink">Edit Information</a>
+        {% else %}
+            <form method="POST" action="{{ url_for('submit_info') }}">
+                <div class="mb-3">
+                    <label>Name</label>
+                    <input type="text" name="name" class="form-control" required>
+                </div>
+                <div class="mb-3">
+                    <label>Parent's Name</label>
+                    <input type="text" name="parent_name" class="form-control" required>
+                </div>
+                <div class="mb-3">
+                    <label>Date of Birth</label>
+                    <input type="date" name="dob" class="form-control" required max="{{ max_date }}">
+                </div>
+                <div class="mb-3">
+                    <label>Weight (kg)</label>
+                    <input type="number" name="weight" class="form-control" step="0.1" required>
+                </div>
+                <div class="mb-3">
+                    <label>Height (cm)</label>
+                    <input type="number" name="height" class="form-control" step="0.1" required>
+                </div>
+                <div class="mb-3">
+                    <label>Previous Health Issues</label>
+                    <textarea name="previous_health_issues" class="form-control"></textarea>
+                </div>
+                <div class="mb-3">
+                    <label>Parent's Health History (related to breast cancer)</label>
+                    <textarea name="parent_health_issues" class="form-control"></textarea>
+                </div>
+                <button type="submit" class="btn btn-pink">Save Info</button>
+            </form>
+        {% endif %}
     </div>
 
-    <div class="row g-4">
-        <div class="col-md-6">
-            <div class="card shadow p-4">
-                <h4>About Breast Cancer</h4>
-                <p>Breast cancer is one of the most common cancers among women. Early detection and prevention can save lives. This tool allows you to assess your risk and learn about preventive actions.</p>
-            </div>
-        </div>
-
-        <div class="col-md-6">
-            <div class="card shadow p-4">
-                <h4>Prevention & Awareness</h4>
-                <ul>
-                    <li>Perform regular self-examinations</li>
-                    <li>Get routine mammograms</li>
-                    <li>Maintain a healthy lifestyle</li>
-                    <li>Limit alcohol and quit smoking</li>
-                    <li>Exercise regularly</li>
-                </ul>
-            </div>
-        </div>
-
-        <div class="col-md-12">
-            <div class="card shadow p-4 mt-4">
-                <h4>How Our Predictor Works</h4>
-                <p>Our system uses machine learning (SVM model) to predict your breast cancer risk based on various features. All you need to do is input the required values on the prediction page.</p>
-                <a href="{{ url_for('predict') }}" class="btn btn-pink mt-3">Start Prediction</a>
-            </div>
-        </div>
+    <!-- 🏥 Nearby Hospitals Section -->
+    <div class="card mt-5 p-4 shadow-sm">
+        <h4>🏥 Nearby Medical Support</h4>
+        <ul id="hospital-list" class="list-group">
+            <li class="list-group-item">Loading nearby hospitals...</li>
+        </ul>
     </div>
 </div>
+
+<script>
+// Get nearby hospitals based on user location
+document.addEventListener("DOMContentLoaded", () => {
+    const hospitalList = document.getElementById("hospital-list");
+
+    if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+            position => {
+                const { latitude, longitude } = position.coords;
+                fetch(`/nearby-hospitals?lat=${latitude}&lon=${longitude}`)
+                    .then(res => res.json())
+                    .then(data => {
+                        hospitalList.innerHTML = "";
+                        data.forEach(h => {
+                            const li = document.createElement("li");
+                            li.className = "list-group-item";
+                            li.innerHTML = `<strong>${h.name}</strong><br><small>${h.address}</small>`;
+                            hospitalList.appendChild(li);
+                        });
+
+                        // Scroll to bottom after loading
+                        window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+                    });
+            },
+            error => {
+                hospitalList.innerHTML = `<li class='list-group-item text-danger'>⚠️ Location access denied. Enable it to fetch nearby hospitals.</li>`;
+            }
+        );
+    } else {
+        hospitalList.innerHTML = `<li class='list-group-item text-danger'>⚠️ Geolocation is not supported on this browser.</li>`;
+    }
+});
+</script>
 {% endblock %}
