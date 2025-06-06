@@ -19,24 +19,16 @@ from datetime import date
 app = Flask(__name__)
 
 from datetime import timedelta
-
-app.config['REMEMBER_COOKIE_DURATION'] = timedelta(days=30)  # Optional, adjust as needed
-
-
+app.secret_key = os.environ.get('SECRET_KEY') or os.urandom(24)
+app.config['SESSION_TYPE'] = 'filesystem'
+app.permanent_session_lifetime = timedelta(days=7)
+app.config['REMEMBER_COOKIE_DURATION'] = timedelta(days=30)
 
 login_manager = LoginManager()
 login_manager.init_app(app)
 login_manager.login_view = 'login'  # This ensures @login_required redirects to /login
 
 from flask_login import UserMixin
-
-'''class User(UserMixin):
-    def __init__(self, id, username):
-        self.id = id
-        self.username = username
-
-    def get_id(self):
-        return str(self.id)'''
 class User(UserMixin):
     def __init__(self, id, username, email=None):
         self.id = id
@@ -45,14 +37,9 @@ class User(UserMixin):
 
     def get_id(self):
         return str(self.id)
-
-
 app.secret_key = os.environ.get('SECRET_KEY') or os.urandom(24)
 app.config['SESSION_TYPE'] = 'filesystem'
 app.permanent_session_lifetime = timedelta(days=7)
-
-
-
 MODEL_PATH = os.path.join(os.path.dirname(__file__), 'model.pkl')
 try:
     with open(MODEL_PATH, 'rb') as f:
@@ -60,19 +47,12 @@ try:
 except Exception as e:
     print(f"[ERROR] Could not load model: {e}")
     model = None
-
-'''def get_db():
-    db = sqlite3.connect('database.db')
-    db.row_factory = sqlite3.Row
-    return db'''
 def get_db():
     db_path = os.path.join(os.path.dirname(__file__), 'database.db')
+    #db = sqlite3.connect(db_path, timeout=10) 
     db = sqlite3.connect(db_path)
     db.row_factory = sqlite3.Row
     return db
-
-
-
 def init_db():
     with app.app_context():
         db = get_db()
@@ -93,20 +73,33 @@ def init_db():
                 FOREIGN KEY(user_id) REFERENCES users(id)
             );
             CREATE TABLE IF NOT EXISTS patient_info (
-            user_id INTEGER PRIMARY KEY,
-            name TEXT,
-            parent_name TEXT,
-            dob TEXT,
-            weight REAL,
-            height REAL,
-            previous_health_issues TEXT,
-            parent_health_issues TEXT
+                user_id INTEGER PRIMARY KEY,
+                name TEXT,
+                parent_name TEXT,
+                dob TEXT,
+                weight REAL,
+                height REAL,
+                previous_health_issues TEXT,
+                parent_health_issues TEXT
+            );
+
+            CREATE TABLE IF NOT EXISTS appointments (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                user_id INTEGER,
+                doctor_id INTEGER,
+                doctor_name TEXT,
+                patient_name TEXT,
+                reason TEXT,
+                phone TEXT,
+                address TEXT,
+                appointment_time TEXT,
+                created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY(user_id) REFERENCES users(id)
             );
         """)
         db.commit()
 
 init_db()
-
 @login_manager.user_loader
 def load_user(user_id):
     db = get_db()
@@ -115,8 +108,6 @@ def load_user(user_id):
         #return User(id=user_data['id'], username=user_data['username'])
         return User(id=user_data['id'], username=user_data['username'], email=user_data['email'])
     return None
-
-
 def generate_prediction_trend_plot():
     db = get_db()
     user_id = current_user.id
@@ -134,7 +125,6 @@ def generate_prediction_trend_plot():
     fig = go.Figure(data=go.Scatter(x=dates, y=counts, mode='lines+markers'))
     fig.update_layout(title='Prediction Trend Over Time', xaxis_title='Date', yaxis_title='Predictions')
     return fig.to_html(full_html=False)
-
 def generate_confidence_score_plot():
     db = get_db()
     user_id = current_user.id
@@ -146,7 +136,6 @@ def generate_confidence_score_plot():
     fig = go.Figure(data=go.Scatter(x=timestamps, y=confidences, mode='lines+markers'))
     fig.update_layout(title='Confidence Scores Over Time', xaxis_title='Timestamp', yaxis_title='Confidence (%)')
     return fig.to_html(full_html=False)
-
 def generate_top_features_plot():
     # Placeholder logic — replace with real feature impact analysis if available
     features = ['Clump Thickness', 'Uniform Cell Size', 'Uniform Cell Shape', 'Bare Nuclei']
@@ -155,7 +144,6 @@ def generate_top_features_plot():
     fig = go.Figure(data=go.Bar(x=features, y=importances))
     fig.update_layout(title='Top Influential Features (Example)', xaxis_title='Feature', yaxis_title='Importance')
     return fig.to_html(full_html=False)
-
 def generate_prediction_distribution_plot():
     db = get_db()
     user_id = current_user.id
@@ -171,8 +159,6 @@ def generate_prediction_distribution_plot():
     )])
     fig.update_layout(title='Malignant vs Benign Predictions')
     return fig.to_html(full_html=False)
-
-
 def generate_recommendation(risk_level):
     if risk_level == 'High':
         return "Consult an Oncologist Immediately"
@@ -180,7 +166,6 @@ def generate_recommendation(risk_level):
         return "Schedule Routine Checkup"
     else:
         return "Maintain Healthy Lifestyle"
-
 def get_treatment_suggestions(risk_level):
     if risk_level == 'High':
         return ["Chemotherapy", "MRI Scan", "Consult an Oncologist"]
@@ -189,7 +174,6 @@ def get_treatment_suggestions(risk_level):
     elif risk_level == 'Low':
         return ["Annual Screening", "Self-Examination Tips"]
     return []
-
 # --- Perform migration if new columns are missing ---
 def migrate_db():
     db = get_db()
@@ -226,11 +210,9 @@ def load_logged_in_user():
         })()
         session['darkmode'] = user['darkmode']
         session['notifications'] = user['notifications']
-
 @app.context_processor
 def inject_user():
     return dict(current_user=g.current_user)
-
 from collections import namedtuple
 def get_last_prediction(user_id):
     db = get_db()
@@ -247,11 +229,9 @@ def get_last_prediction(user_id):
         Prediction = namedtuple('Prediction', ['risk_level', 'confidence', 'timestamp'])
         return Prediction(risk_level=risk_level, confidence=row['confidence'], timestamp=row['timestamp'])
     return None
-
 import plotly.graph_objs as go
 import plotly.io as pio
 import sqlite3
-
 def generate_risk_plot(user_id):
     conn = sqlite3.connect('database.db')
     c = conn.cursor()
@@ -267,15 +247,10 @@ def generate_risk_plot(user_id):
     fig.update_layout(title='Recent Prediction Confidence', xaxis_title='Prediction #', yaxis_title='Confidence')
 
     return pio.to_html(fig, full_html=False)
-
-
-
 from flask_login import login_required, current_user
-
 from flask import render_template, request, jsonify
 import requests
 from flask_login import login_required, current_user
-
 @app.route("/")
 @login_required
 def home():
@@ -300,7 +275,6 @@ def home():
         patient=patient,
         max_date=max_date,
     )
-
 @app.route("/nearby-hospitals")
 @login_required
 def nearby_hospitals():
@@ -386,7 +360,6 @@ def submit_info():
 
     db.commit()
     return redirect(url_for('home'))
-
 @app.route('/edit-info')
 @login_required
 def edit_info():
@@ -394,18 +367,36 @@ def edit_info():
     user_id = current_user.id
     patient = db.execute("SELECT * FROM patient_info WHERE user_id = ?", (user_id,)).fetchone()
     max_date = date.today().isoformat()
-    return render_template('home.html', patient=None, edit_data=patient, max_date=max_date, user_data=current_user)
 
+    # Fetch prediction too if needed
+    last_prediction = db.execute(
+        "SELECT * FROM predictions WHERE user_id = ? ORDER BY timestamp DESC LIMIT 1",
+        (user_id,)
+    ).fetchone()
 
+    # You may calculate health_status here if used
+    health_status = None
+    if last_prediction:
+        health_status = 'High' if float(last_prediction['confidence']) >= 70 else 'Low'
 
-
-@app.route('/treatment')
+    return render_template(
+        'home.html',
+        patient=patient,
+        edit_data=patient,
+        max_date=max_date,
+        user_data=current_user,
+        last_prediction=last_prediction,
+        health_status=health_status
+    )
+'''@app.route('/treatment')
 def treatment():
-    return render_template('treatment.html')
+    return render_template('treatment.html')'''
 
 @app.route('/contact')
 def contact():
     return render_template('contact.html')
+
+import numpy as np
 
 @app.route('/predict', methods=['POST', 'GET'])
 @login_required
@@ -415,24 +406,26 @@ def predict():
             flash("Prediction model not available.", "danger")
             return redirect(url_for('home'))
 
+        feature_names = [
+            'clump_thickness', 'uniform_cell_size', 'uniform_cell_shape',
+            'marginal_adhesion', 'single_epithelial_size', 'bare_nuclei',
+            'bland_chromatin', 'normal_nucleoli', 'mitoses'
+        ]
+
         try:
-            feature_names = [
-                'clump_thickness', 'uniform_cell_size', 'uniform_cell_shape',
-                'marginal_adhesion', 'single_epithelial_size', 'bare_nuclei',
-                'bland_chromatin', 'normal_nucleoli', 'mitoses'
-            ]
-            try:
-                features = [float(request.form[name]) for name in feature_names]
-            except (ValueError, KeyError):
-                flash('Invalid input data', 'danger')
-                return redirect(url_for('predict'))
+            features = [float(request.form[name]) for name in feature_names]
+        except (ValueError, KeyError):
+            flash('Invalid input data', 'danger')
+            return redirect(url_for('predict'))
 
+        try:
+            prediction_code = model.predict([features])[0]
+            result = 'Benign' if prediction_code == 2 else 'Malignant'
 
-
-            prediction = model.predict([features])[0]
-            result = 'Benign' if prediction == 2 else 'Malignant'
-            proba = model.predict_proba([features])[0].max() if hasattr(model, "predict_proba") else 0.9
-            confidence = round(proba * 100, 2)
+            # Estimate confidence using decision function + sigmoid
+            decision = model.decision_function([features])[0]
+            confidence = 1 / (1 + np.exp(-decision))
+            confidence = round(confidence * 100, 2)
 
             db = get_db()
             db.execute(
@@ -442,11 +435,15 @@ def predict():
             db.commit()
 
             return render_template('results.html', prediction=result, confidence=confidence, features=features)
+
         except Exception as e:
             print("Error making prediction:", e)
-            return f"Error: {e}"
+            flash("An error occurred while making prediction.", "danger")
+            return redirect(url_for('predict'))
 
     return render_template('predict.html')
+
+
 
 @app.route('/dashboard')
 @login_required
@@ -564,34 +561,27 @@ import re
 from flask import request, flash, redirect, url_for, render_template
 from werkzeug.security import generate_password_hash
 
+from werkzeug.security import generate_password_hash
+
 @app.route('/register', methods=['GET', 'POST'])
 def register():
     if request.method == 'POST':
-        username = request.form['username'].strip()
-        email = request.form['email'].strip()
+        username = request.form['username']
+        email = request.form['email']
         password = request.form['password']
-
-        # Basic validations
-        if not re.match(r'^[\w\.-]+@[\w\.-]+\.\w+$', email):
-            flash('Invalid email format.', 'danger')
-            return render_template('register.html')
-
-        if len(password) < 6:
-            flash('Password must be at least 6 characters.', 'danger')
-            return render_template('register.html')
 
         db = get_db()
         try:
-            db.execute(
-                "INSERT INTO users (username, email, password) VALUES (?, ?, ?)",
-                (username, email, generate_password_hash(password))
-            )
+            hashed_password = generate_password_hash(password)
+            db.execute('INSERT INTO users (username, email, password) VALUES (?, ?, ?)',
+                       (username, email, hashed_password))
             db.commit()
             flash('Registration successful. Please log in.', 'success')
             return redirect(url_for('login'))
         except sqlite3.IntegrityError:
             flash('Username or email already exists.', 'danger')
     return render_template('register.html')
+
 
 from itsdangerous import URLSafeTimedSerializer
 from flask_mail import Mail, Message
@@ -651,12 +641,9 @@ def reset_password(token):
         return redirect(url_for('login'))
 
     return render_template('reset_password.html')
-
-
 @app.route('/about')
 def about():
     return render_template('about.html')
-
 @app.route('/privacy')
 def privacy():
     return render_template('privacy.html')
@@ -715,15 +702,126 @@ def delete_account():
         with open('schema.sql') as f:
             conn.executescript(f.read())'''
     #print("✅ Database initialized.")
+# Example doctor recommendations
+doctors = [
+    {'id': 1, 'name': 'Dr. Anjali Kumar', 'specialty': 'Oncologist', 'phone': '+91-9876543210',
+     'address': '123 Cancer Care St, Mumbai, Maharashtra', 'lat': 19.0760, 'lon': 72.8777},
+    {'id': 2, 'name': 'Dr. Rajesh Singh', 'specialty': 'Surgeon', 'phone': '+91-9123456789',
+     'address': '456 Health Ave, Delhi, Delhi', 'lat': 28.6139, 'lon': 77.2090},
+    {'id': 3, 'name': 'Dr. Priya Sharma', 'specialty': 'Radiologist', 'phone': '+91-9988776655',
+     'address': '789 Wellness Rd, Pune, Maharashtra', 'lat': 18.5204, 'lon': 73.8567},
+    {'id': 4, 'name': 'Dr. Sameer Patel', 'specialty': 'Oncologist', 'phone': '+91-9876543211',
+     'address': '321 Hope St, Ahmedabad, Gujarat', 'lat': 23.0225, 'lon': 72.5714},
+    {'id': 5, 'name': 'Dr. Kavita Joshi', 'specialty': 'Surgeon', 'phone': '+91-9123456790',
+     'address': '654 Care Blvd, Jaipur, Rajasthan', 'lat': 26.9124, 'lon': 75.7873},
+    {'id': 6, 'name': 'Dr. Arjun Mehta', 'specialty': 'Radiologist', 'phone': '+91-9988776600',
+     'address': '987 Health Lane, Lucknow, Uttar Pradesh', 'lat': 26.8467, 'lon': 80.9462},
+    {'id': 7, 'name': 'Dr. Neha Verma', 'specialty': 'Oncologist', 'phone': '+91-9876543299',
+     'address': '123 Healing Rd, Bhopal, Madhya Pradesh', 'lat': 23.2599, 'lon': 77.4126},
+    {'id': 8, 'name': 'Dr. Rohit Gupta', 'specialty': 'Surgeon', 'phone': '+91-9123456780',
+     'address': '456 Cure Ave, Chennai, Tamil Nadu', 'lat': 13.0827, 'lon': 80.2707},
+    {'id': 9, 'name': 'Dr. Anjali Singh', 'specialty': 'Radiologist', 'phone': '+91-9988776611',
+     'address': '789 Wellness Blvd, Hyderabad, Telangana', 'lat': 17.3850, 'lon': 78.4867},
+    {'id': 10, 'name': 'Dr. Vikram Rao', 'specialty': 'Oncologist', 'phone': '+91-9876543200',
+     'address': '321 Hope Lane, Kolkata, West Bengal', 'lat': 22.5726, 'lon': 88.3639},
+]
+from flask import request, jsonify, render_template, redirect, url_for, flash
+from math import radians, cos, sin, asin, sqrt
+from datetime import datetime
+@app.route('/treatment')
+@login_required
+def treatment():
+    # Example explanation content
+    field_explanations = {
+        "Clump Thickness": "Indicates the thickness of cell clusters. Higher values may suggest abnormal cell growth.",
+        "Uniform Cell Size": "Measures consistency in cell size. Irregular sizes can indicate malignancy.",
+        "Uniform Cell Shape": "Assesses similarity in cell shapes. Variation can be a sign of cancer.",
+        "Marginal Adhesion": "Refers to how closely cells stick together. Looser adhesion may point to malignancy.",
+        "Single Epithelial Size": "Size of the epithelial cells. Larger sizes are often abnormal.",
+        "Bare Nuclei": "Counts nuclei that lack surrounding cytoplasm. High numbers are linked to cancer.",
+        "Bland Chromatin": "Describes texture of the nucleus. Coarse texture may be cancerous.",
+        "Normal Nucleoli": "Presence of small, round structures in the nucleus. Prominent nucleoli may indicate malignancy.",
+        "Mitoses": "Cell division rate. Higher rates are seen in malignant tumors."
+    }
 
-# Only run this once to create tables
-#init_db()
+    prediction_info = {
+        "Benign": "Non-cancerous. Tumors grow slowly and are usually not life-threatening.",
+        "Malignant": "Cancerous. Can grow quickly and spread to other parts of the body."
+    }
+
+    confidence_info = (
+        "The confidence score represents how certain the model is about its prediction. "
+        "A higher percentage indicates stronger certainty. For example, 63% confidence in a benign prediction means "
+        "the model is 63% sure that the tumor is non-cancerous."
+    )
+
+    treatments = {
+        "Benign": [
+            "Regular monitoring and check-ups",
+            "Surgical removal if necessary",
+            "Healthy lifestyle and diet maintenance"
+        ],
+        "Malignant": [
+            "Chemotherapy",
+            "Radiation therapy",
+            "Surgical removal of the tumor",
+            "Hormone therapy or immunotherapy"
+        ]
+    }
+    return render_template('treatment.html',
+                           field_explanations=field_explanations,
+                           prediction_info=prediction_info,
+                           confidence_info=confidence_info,
+                           treatments=treatments,
+                           doctors=doctors)
+
+def haversine(lon1, lat1, lon2, lat2):
+    lon1, lat1, lon2, lat2 = map(radians, [lon1, lat1, lon2, lat2])
+    dlon = lon2 - lon1
+    dlat = lat2 - lat1
+    a = sin(dlat/2)**2 + cos(lat1)*cos(lat2)*sin(dlon/2)**2
+    c = 2 * asin(sqrt(a))
+    km = 6371 * c
+    return km
+
+@app.route('/nearby-doctors')
+def nearby_doctors():
+    lat = request.args.get('lat')
+    lon = request.args.get('lon')
+    # Dummy data — replace with real API or database query
+    doctors = [
+        {"name": "Dr. Anjali Mehta", "address": "City Hospital, Sector 5", "phone": "9876543210"},
+        {"name": "Dr. Rahul Khanna", "address": "Sunrise Clinic, Block B", "phone": "9123456789"}
+    ]
+    return jsonify(doctors)
+
+@app.route('/book-appointment')
+def book_appointment():
+    doctor_name = request.args.get('doctor')
+    return render_template("book_appointment.html", doctor_name=doctor_name)
+
+@app.route('/submit_appointment', methods=["POST"])
+def submit_appointment():
+    doctor_name = request.form.get("doctor_name")
+    patient_name = request.form.get("patient_name")
+    email = request.form.get("email")
+    date = request.form.get("date")
+    time = request.form.get("time")
+
+    # Save appointment logic...
+
+    return render_template("confirmation.html",
+                           doctor_name=doctor_name,
+                           patient_name=patient_name, 
+                           date=date, 
+                           time=time)
+
+
+
+
 
 @app.errorhandler(404)
 def page_not_found(e):
     return "404 Not Found", 404
-
-
-
 if __name__ == '__main__':
     app.run(debug=True, threaded=False)

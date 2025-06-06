@@ -1,0 +1,118 @@
+{% extends "base.html" %}
+{% block title %}Appointment Confirmed{% endblock %}
+
+{% block content %}
+<!-- Confetti JS Library -->
+<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
+<script>
+    window.onload = () => {
+        confetti({
+            particleCount: 150,
+            spread: 70,
+            origin: { y: 0.6 }
+        });
+    };
+</script>
+
+<div class="container mt-5">
+    <div class="card shadow-lg rounded-4 p-5 text-center" style="background-color: #f0f9ff;">
+        <!-- Animated Checkmark -->
+        <div class="checkmark-container mb-4">
+            <svg class="checkmark" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 52 52">
+                <circle class="checkmark-circle" cx="26" cy="26" r="25" fill="none"/>
+                <path class="checkmark-check" fill="none" d="M14.1 27.2l7.1 7.2 16.7-16.8"/>
+            </svg>
+        </div>
+
+        <h2 class="text-success fw-bold mb-3">
+            Appointment Confirmed!
+        </h2>
+        <p class="fs-5">
+            Thank you, <span class="fw-semibold text-primary">{{ patient_name }}</span>.<br>
+            Your appointment is scheduled for <span class="fw-semibold">{{ date }}</span> at <span class="fw-semibold">{{ time }}</span>.
+        </p>
+
+        <div class="d-flex justify-content-center gap-3 mt-4 flex-wrap">
+            <a href="{{ url_for('home') }}" class="btn btn-lg btn-primary px-4">
+                 Go to Home
+            </a>
+            <a href="{{ url_for('book_appointment', doctor=doctor_name) }}" class="btn btn-lg btn-outline-secondary px-4">
+                 Book Another Appointment
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- Custom Styles -->
+<style>
+.card {
+    background-image: linear-gradient(145deg, #e6f7ff, #ffffff);
+}
+
+.btn-outline-secondary {
+    border: 2px solid #6c757d;
+    color: #6c757d;
+    transition: 0.2s ease;
+}
+
+.btn-outline-secondary:hover {
+    background-color: #6c757d;
+    color: white;
+}
+
+/* Checkmark Animation */
+.checkmark-container {
+    display: flex;
+    justify-content: center;
+}
+
+.checkmark {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    stroke-width: 2;
+    stroke: #4CAF50;
+    stroke-miterlimit: 10;
+    box-shadow: inset 0px 0px 0px #4CAF50;
+    animation: fill .4s ease-in-out .4s forwards, scale .3s ease-in-out .9s both;
+}
+
+.checkmark-circle {
+    stroke-dasharray: 166;
+    stroke-dashoffset: 166;
+    stroke-width: 2;
+    stroke: #4CAF50;
+    fill: none;
+    animation: stroke .6s cubic-bezier(0.65, 0, 0.45, 1) forwards;
+}
+
+.checkmark-check {
+    transform-origin: 50% 50%;
+    stroke-dasharray: 48;
+    stroke-dashoffset: 48;
+    animation: stroke .4s cubic-bezier(0.65, 0, 0.45, 1) .6s forwards;
+}
+
+@keyframes stroke {
+    100% {
+        stroke-dashoffset: 0;
+    }
+}
+
+@keyframes scale {
+    0%, 100% {
+        transform: none;
+    }
+
+    50% {
+        transform: scale(1.1);
+    }
+}
+
+@keyframes fill {
+    100% {
+        box-shadow: inset 0px 0px 0px 30px #f0f9ff;
+    }
+}
+</style>
+{% endblock %}

@@ -1,40 +1,121 @@
 {% extends "base.html" %}
+{% block title %}Treatment & Support{% endblock %}
+
 {% block content %}
-<div class="container my-5">
-    <h2 class="text-pink mb-4">💊 Breast Cancer Treatment Options</h2>
+<div class="row justify-content-center">
+    <div class="col-lg-10">
+        <div class="card shadow rounded-4 p-4">
+            <div class="card-body">
+                <h2 class="text-center mb-5">🩺 Treatment & Support</h2>
 
-    <div class="card shadow p-4 mb-4">
-        <h4>Surgery</h4>
-        <p>Includes lumpectomy or mastectomy. Used in early stages or combined with other treatments.</p>
-    </div>
+                <!-- Medical Terms Section -->
+                <div class="mb-5">
+                    <h4 class="fw-semibold mb-4">📚 Medical Term Explanations</h4>
+                    <ul class="list-unstyled ps-3">
+                        {% for item in [
+                            ('Benign', 'Non-cancerous. Tumors grow slowly and are usually not life-threatening.'),
+                            ('Malignant', 'Cancerous. Can grow quickly and spread to other parts of the body.'),
+                            ('Clump Thickness', 'Indicates thickness of cell clusters. High values may suggest abnormal cell growth.'),
+                            ('Uniform Cell Size', 'Consistency in cell size. Irregularity might mean malignancy.'),
+                            ('Uniform Cell Shape', 'Variation can suggest cancerous activity.'),
+                            ('Marginal Adhesion', 'Reflects how cells stick. Lower adhesion might mean malignancy.'),
+                            ('Bare Nuclei', 'Presence of nuclei without cytoplasm. Common in cancer cells.'),
+                            ('Bland Chromatin', 'Describes texture of the nucleus. Coarse texture may be cancerous.'),
+                            ('Normal Nucleoli', 'Presence of small, round structures in the nucleus. Prominent nucleoli may indicate malignancy.'),
+                            ('Mitoses', 'Cell division rate. Higher rates are seen in malignant tumors.')
+                        ] %}
+                        <li class="mb-3">
+                            <strong>{{ item[0] }}:</strong> {{ item[1] }}
+                        </li>
+                        {% endfor %}
+                    </ul>
+                </div>
 
-    <div class="card shadow p-4 mb-4">
-        <h4>Radiation Therapy</h4>
-        <p>Uses high-energy rays to kill cancer cells. Typically used after surgery.</p>
-    </div>
-
-    <div class="card shadow p-4 mb-4">
-        <h4>Chemotherapy</h4>
-        <p>Drugs that travel through the bloodstream to kill cancer cells. Recommended when risk of spread is high.</p>
-    </div>
-
-    <div class="card shadow p-4 mb-4">
-        <h4>Hormonal Therapy</h4>
-        <p>Used for hormone-receptor-positive cancers to block hormones needed for cancer growth.</p>
-    </div>
-
-    <div class="card shadow p-4 mb-4">
-        <h4>Targeted Therapy</h4>
-        <p>Targets specific proteins (e.g. HER2) on cancer cells. Less harmful to normal cells.</p>
-    </div>
-
-    <div class="card shadow p-4 mb-4">
-        <h4>Support & Lifestyle</h4>
-        <p>Support groups, diet, yoga, and counseling help with recovery and well-being.</p>
-    </div>
-
-    <div class="text-center mt-4">
-        <a href="{{ url_for('dashboard') }}" class="btn btn-outline-pink">← Back to Dashboard</a>
+                <!-- Nearby Doctors Section -->
+                <div>
+                    <h4 class="fw-semibold mb-4">📍 Nearby Doctors</h4>
+                    <div id="doctor-list">
+                        <p>Fetching nearby specialists...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
+
+<style>
+    .doctor-card {
+        background: #fdfdfd;
+        border-radius: 12px;
+        padding: 20px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        margin-bottom: 24px;
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .doctor-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 4px 14px rgba(0,0,0,0.1);
+    }
+
+    .btn-appointment {
+        background-color: #ff69b4;
+        color: white;
+        border: none;
+        border-radius: 8px;
+        padding: 10px 20px;
+        font-weight: 500;
+        text-decoration: none;
+        display: inline-block;
+        margin-top: 15px;
+        transition: background-color 0.3s ease;
+    }
+
+    .btn-appointment:hover {
+        background-color: #e91e63;
+    }
+</style>
+
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+    const doctorList = document.getElementById("doctor-list");
+
+    if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(position => {
+            const { latitude, longitude } = position.coords;
+
+            fetch(`/nearby-doctors?lat=${latitude}&lon=${longitude}`)
+                .then(res => res.json())
+                .then(data => {
+                    doctorList.innerHTML = "";
+                    if (data.length === 0) {
+                        doctorList.innerHTML = "<p>No doctors found nearby.</p>";
+                        return;
+                    }
+
+                    data.forEach(doc => {
+                        const div = document.createElement("div");
+                        div.className = "doctor-card";
+                        div.innerHTML = `
+                            <h5 class="mb-2">${doc.name}</h5>
+                            <p class="mb-1"><strong>Address:</strong> ${doc.address}</p>
+                            <p class="mb-2"><strong>Contact:</strong> ${doc.phone}</p>
+                            <a href="/book-appointment?doctor=${encodeURIComponent(doc.name)}" class="btn-appointment">
+                                Book Appointment
+                            </a>
+                        `;
+                        doctorList.appendChild(div);
+                    });
+                })
+                .catch(() => {
+                    doctorList.innerHTML = "<p class='text-danger'>Unable to load nearby doctors.</p>";
+                });
+        }, () => {
+            doctorList.innerHTML = "<p class='text-danger'>Location access denied. Enable it to fetch nearby doctors.</p>";
+        });
+    } else {
+        doctorList.innerHTML = "<p class='text-danger'>Geolocation not supported in this browser.</p>";
+    }
+});
+</script>
 {% endblock %}

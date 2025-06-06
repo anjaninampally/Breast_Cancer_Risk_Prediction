@@ -1,18 +1,82 @@
 {% extends 'base.html' %}
 {% block content %}
-<div class="container my-4">
+<style>
+    body {
+        background: linear-gradient(to bottom right, #f0faff, #e0f7fa);
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    .container {
+        max-width: 900px;
+        margin: auto;
+        padding: 30px 20px;
+    }
+
+    .card {
+        border: none;
+        border-radius: 20px;
+        background: linear-gradient(to bottom right, #ffffff, #f5fafe);
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+        padding: 25px 30px;
+        margin-bottom: 30px;
+        transition: all 0.3s ease-in-out;
+    }
+
+    .card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 12px 25px rgba(0, 0, 0, 0.12);
+    }
+
+    .card-title {
+        font-size: 1.4rem;
+        font-weight: 700;
+        color: #1a237e;
+        margin-bottom: 20px;
+    }
+
+    label {
+        font-weight: 500;
+    }
+
+    .form-control {
+        border-radius: 10px;
+        box-shadow: none;
+        border: 1px solid #ccc;
+    }
+
+    .form-check-label {
+        font-size: 1rem;
+        color: #333;
+    }
+
+    .btn-pink {
+        background-color: #ff69b4;
+        color: white;
+        font-weight: 600;
+        padding: 10px 20px;
+        border-radius: 12px;
+        transition: background 0.3s ease;
+        border: none;
+    }
+
+    .btn-pink:hover {
+        background-color: #e91e63;
+    }
+</style>
+
+<div class="container mt-4">
 
     <!-- Account Settings -->
-    <div class="card mb-4 p-3">
-        <h5 class="card-title">Account Settings</h5>
+    <div class="card">
+        <h5 class="card-title">👤 Account Settings</h5>
         <form method="POST">
             <input type="hidden" name="form_type" value="account_info">
             <div class="mb-3">
-                <label class="form-label" for="username">Username</label>
+                <label for="username" class="form-label">Username</label>
                 <input type="text" class="form-control" id="username" name="username" value="{{ user.username }}">
             </div>
             <div class="mb-3">
-                <label class="form-label" for="email">Email</label>
+                <label for="email" class="form-label">Email</label>
                 <input type="email" class="form-control" id="email" name="email" value="{{ user.email }}">
             </div>
             <button type="submit" class="btn btn-pink">Save</button>
@@ -20,8 +84,8 @@
     </div>
 
     <!-- Preferences -->
-    <div class="card mb-4 p-3">
-        <h5 class="card-title">Preferences</h5>
+    <div class="card">
+        <h5 class="card-title">⚙️ Preferences</h5>
         <form method="POST" id="preferences-form">
             <input type="hidden" name="form_type" value="preferences">
             <div class="form-check form-switch mb-3">
@@ -37,22 +101,22 @@
     </div>
 
     <!-- Log Out -->
-    <div class="card mb-4 p-3">
-        <h5 class="card-title">Log Out</h5>
+    <div class="card">
+        <h5 class="card-title"> Log Out</h5>
         <form action="{{ url_for('logout') }}" method="GET">
             <button type="submit" class="btn btn-pink">Log Out</button>
         </form>
     </div>
 
     <!-- Delete Account -->
-    <div class="card mb-4 p-3">
-        <h5 class="card-title">Delete Account</h5>
+    <div class="card">
+        <h5 class="card-title text-danger"> Delete Account</h5>
         <form method="POST" action="{{ url_for('delete_account') }}">
-            <button type="submit" class="btn btn-pink" onclick="return confirm('Are you sure you want to delete your account? This cannot be undone.');">
+            <button type="submit" class="btn btn-pink"
+                onclick="return confirm('Are you sure you want to delete your account? This cannot be undone.');">
                 Delete My Account
             </button>
         </form>
     </div>
-
 </div>
 {% endblock %}

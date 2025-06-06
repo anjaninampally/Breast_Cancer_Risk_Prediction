@@ -1,0 +1,127 @@
+{% extends "base.html" %}
+{% block title %}Book Appointment{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="card shadow rounded-4 p-4">
+        <div class="card-body">
+            <h2 class="mb-5 text-center">
+                📅 Book Appointment with <span class="text-primary">{{ doctor_name }}</span>
+            </h2>
+
+            <form method="POST" action="{{ url_for('submit_appointment') }}">
+                <input type="hidden" name="doctor_name" value="{{ doctor_name }}">
+
+                <div class="mb-4">
+                    <label class="form-label fw-semibold">Your Name</label>
+                    <input type="text" name="patient_name" class="form-control" required>
+                </div>
+
+                <div class="mb-4">
+                    <label class="form-label fw-semibold">Email</label>
+                    <input type="email" name="email" class="form-control" required>
+                </div>
+
+                <div class="mb-4">
+                    <label class="form-label fw-semibold">Preferred Date</label>
+                    <input type="date" name="date" class="form-control" required>
+                </div>
+
+                <div class="mb-4">
+                    <label class="form-label fw-semibold">Time Slot</label>
+                    <div id="time-slot-container"></div>
+                </div>
+
+                <div class="d-grid">
+                    <button type="submit" class="btn btn-lg" style="background-color: #ff69b4; color: white; border: none; border-radius: 8px;">
+                        ✅ Confirm Booking
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<style>
+    .form-label {
+        font-size: 1rem;
+    }
+
+    .form-control {
+        padding: 12px;
+        font-size: 1rem;
+        border-radius: 8px;
+    }
+
+    .card {
+        background-color: #f9f9ff;
+    }
+</style>
+
+<!-- Script: Enforce future dates + dynamic time slots -->
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    const dateInput = document.querySelector('input[name="date"]');
+    const slotContainer = document.getElementById("time-slot-container");
+
+    const allSlots = [
+        "09:00 AM", "10:00 AM", "11:00 AM",
+        "12:00 PM", "01:00 PM", "02:00 PM",
+        "03:00 PM", "04:00 PM", "05:00 PM"
+    ];
+
+    const today = new Date();
+    const todayStr = today.toISOString().split('T')[0];
+    dateInput.setAttribute("min", todayStr);
+
+    function slotTo24(slot) {
+        const [time, mer] = slot.split(" ");
+        let [h, m] = time.split(":").map(Number);
+        if (mer === "PM" && h < 12) h += 12;
+        if (mer === "AM" && h === 12) h = 0;
+        return h;
+    }
+
+    function updateTimeSlots() {
+        const selectedDate = new Date(dateInput.value);
+        const now = new Date();
+        let filteredSlots = allSlots;
+
+        if (selectedDate.toDateString() === now.toDateString()) {
+            const currentHour = now.getHours();
+            filteredSlots = allSlots.filter(slot => slotTo24(slot) > currentHour);
+        }
+
+        const select = document.createElement("select");
+        select.name = "time";
+        select.className = "form-control";
+        select.required = true;
+
+        if (filteredSlots.length === 0) {
+            const opt = document.createElement("option");
+            opt.value = "";
+            opt.textContent = "No available time slots today";
+            opt.disabled = true;
+            opt.selected = true;
+            select.appendChild(opt);
+            select.disabled = true;
+        } else {
+            filteredSlots.forEach(slot => {
+                const opt = document.createElement("option");
+                opt.value = slot;
+                opt.textContent = slot;
+                select.appendChild(opt);
+            });
+        }
+
+        slotContainer.innerHTML = "";
+        slotContainer.appendChild(select);
+    }
+
+    if (dateInput) {
+        dateInput.addEventListener("change", updateTimeSlots);
+        updateTimeSlots(); // run on load
+    }
+});
+</script>
+{% endblock %}

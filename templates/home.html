@@ -7,71 +7,132 @@
         font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     }
     .container {
-        max-width: 900px;
+        max-width: 960px;
         margin: auto;
+        padding-bottom: 60px;
     }
     .card {
-        border-radius: 15px;
+        border-radius: 20px;
         border: none;
         background: white;
         transition: all 0.3s ease;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
     }
     .card:hover {
-        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
+        transform: scale(1.02);
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
     }
     .btn-pink {
-        background-color: #ff4081;
+        background-color: #ff69b4;
         color: white;
         border: none;
+        font-weight: 600;
+        padding: 10px 20px;
+        border-radius: 10px;
+        box-shadow: 0 3px 8px rgba(0, 0, 0, 0.1);
     }
     .btn-pink:hover {
-        background-color: #e91e63;
+        background-color: #ff4fa6;
     }
     h2, h4 {
         color: #2c3e50;
+        font-weight: 700;
     }
     .alert {
-        border-radius: 10px;
+        border-radius: 12px;
         font-size: 0.95rem;
     }
+    .form-control {
+        border-radius: 10px;
+    }
+    .highlight-box {
+        background: #e3f2fd;
+        border-left: 6px solid #2196f3;
+        padding: 15px;
+        border-radius: 10px;
+        margin-bottom: 20px;
+    }
 </style>
+
 <div class="container mt-5">
-    <h2>Welcome, {{ patient.name if patient else 'Guest' }}!</h2>
+    <h2 class="mb-4 text-center">👋 Welcome, {{ patient.name if patient else user_data.name }}</h2>
 
     {% if last_prediction %}
-    <div class="card mt-4 p-4 shadow-sm">
-        <h4>🩺 Your Latest Prediction</h4>
-        <p><strong>Result:</strong> {{ last_prediction.prediction }}</p>
-        <p><strong>Confidence:</strong> {{ last_prediction.confidence }}%</p>
-        <p><strong>Date:</strong> {{ last_prediction.timestamp }}</p>
+<div class="card mt-4 p-4">
+    <h4>🩺 Your Latest Prediction</h4>
+    <p><strong>Result:</strong> {{ last_prediction.prediction }}</p>
+    <p><strong>Confidence:</strong> {{ last_prediction.confidence }}%</p>
+    <p><strong>Date:</strong> {{ last_prediction.timestamp }}</p>
 
-        {% if health_status == 'High' %}
-            <div class="alert alert-danger mt-3">
-                🚨 High Risk Detected. Consider consulting a specialist.
-            </div>
-        {% else %}
-            <div class="alert alert-success mt-3">
-                ✅ Risk appears low. Maintain regular checkups.
-            </div>
-        {% endif %}
-
-        {% if 'FamilyHistory' in last_prediction and last_prediction['FamilyHistory'] == 'Yes' %}
-            <div class="alert alert-warning mt-2">
-                📌 Note: Review your family medical history with a professional.
-            </div>
-        {% endif %}
-    </div>
+    {% if health_status == 'High' %}
+        <div class="alert alert-danger mt-3">
+            🚨 <strong>High Risk Detected:</strong> Please consult a specialist soon.
+        </div>
     {% else %}
-    <div class="alert alert-info mt-4">
-        No predictions found yet. Head to the Prediction page to get started!
-    </div>
+        <div class="alert alert-success mt-3">
+            ✅ <strong>Low Risk:</strong> Great job! Keep up with regular checkups.
+        </div>
     {% endif %}
 
-    <!-- 👤 Patient Info Section -->
-    <div class="card mt-5 p-4 shadow-sm">
+    {% if last_prediction['FamilyHistory'] == 'Yes' %}
+        <div class="alert alert-warning mt-2">
+            📌 <strong>Note:</strong> Family medical history detected. Consider discussing with your doctor.
+        </div>
+    {% endif %}
+</div>
+{% else %}
+<!-- Clean "No Predictions Yet" Card -->
+<div class="card mt-4 p-4 text-center" style="background: #ffffff;">
+    <h4 class="mb-2">💡 No Predictions Yet</h4>
+    <p class="mb-3">You haven’t made a prediction yet. Get started with a quick health screening.</p>
+    <a href="{{ url_for('predict') }}" class="btn btn-pink">
+        <i class="fas fa-microscope"></i> Make a Prediction
+    </a>
+</div>
+{% endif %}
+
+
+
+    <!-- Patient Info -->
+    <div class="card mt-5 p-4">
         <h4>👤 Your Patient Information</h4>
 
-        {% if patient %}
+        {% if edit_data %}
+            <!-- Editing Existing Info -->
+            <form method="POST" action="{{ url_for('submit_info') }}">
+                <div class="mb-3">
+                    <label>Name</label>
+                    <input type="text" name="name" class="form-control" value="{{ edit_data.name }}" required>
+                </div>
+                <div class="mb-3">
+                    <label>Parent's Name</label>
+                    <input type="text" name="parent_name" class="form-control" value="{{ edit_data.parent_name }}" required>
+                </div>
+                <div class="mb-3">
+                    <label>Date of Birth</label>
+                    <input type="date" name="dob" class="form-control" value="{{ edit_data.dob }}" required max="{{ max_date }}">
+                </div>
+                <div class="mb-3">
+                    <label>Weight (kg)</label>
+                    <input type="number" name="weight" class="form-control" step="0.1" value="{{ edit_data.weight }}" required>
+                </div>
+                <div class="mb-3">
+                    <label>Height (cm)</label>
+                    <input type="number" name="height" class="form-control" step="0.1" value="{{ edit_data.height }}" required>
+                </div>
+                <div class="mb-3">
+                    <label>Previous Health Issues</label>
+                    <textarea name="previous_health_issues" class="form-control">{{ edit_data.previous_health_issues }}</textarea>
+                </div>
+                <div class="mb-3">
+                    <label>Parent's Health History (related to breast cancer)</label>
+                    <textarea name="parent_health_issues" class="form-control">{{ edit_data.parent_health_issues }}</textarea>
+                </div>
+                <button type="submit" class="btn btn-pink">Save Changes</button>
+            </form>
+
+        {% elif patient %}
+            <!-- Display Existing Info -->
             <p><strong>Name:</strong> {{ patient.name }}</p>
             <p><strong>Parent's Name:</strong> {{ patient.parent_name }}</p>
             <p><strong>Date of Birth:</strong> {{ patient.dob }}</p>
@@ -79,8 +140,9 @@
             <p><strong>Height:</strong> {{ patient.height }} cm</p>
             <p><strong>Previous Health Issues:</strong> {{ patient.previous_health_issues or 'None' }}</p>
             <p><strong>Parent's Health History (Breast Cancer):</strong> {{ patient.parent_health_issues or 'None' }}</p>
-            <a href="{{ url_for('edit_info') }}" class="btn btn-pink">Edit Information</a>
+            <a href="{{ url_for('edit_info') }}" class="btn btn-pink mt-3">Edit Information</a>
         {% else %}
+            <!-- New Info Form -->
             <form method="POST" action="{{ url_for('submit_info') }}">
                 <div class="mb-3">
                     <label>Name</label>
@@ -115,8 +177,8 @@
         {% endif %}
     </div>
 
-    <!-- 🏥 Nearby Hospitals Section -->
-    <div class="card mt-5 p-4 shadow-sm">
+    <!-- Hospitals Section -->
+    <div class="card mt-5 p-4">
         <h4>🏥 Nearby Medical Support</h4>
         <ul id="hospital-list" class="list-group">
             <li class="list-group-item">Loading nearby hospitals...</li>
@@ -125,7 +187,6 @@
 </div>
 
 <script>
-// Get nearby hospitals based on user location
 document.addEventListener("DOMContentLoaded", () => {
     const hospitalList = document.getElementById("hospital-list");
 
@@ -137,24 +198,29 @@ document.addEventListener("DOMContentLoaded", () => {
                     .then(res => res.json())
                     .then(data => {
                         hospitalList.innerHTML = "";
-                        data.forEach(h => {
-                            const li = document.createElement("li");
-                            li.className = "list-group-item";
-                            li.innerHTML = `<strong>${h.name}</strong><br><small>${h.address}</small>`;
-                            hospitalList.appendChild(li);
-                        });
-
-                        // Scroll to bottom after loading
-                        window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+                        if (data.length === 0) {
+                            hospitalList.innerHTML = "<li class='list-group-item text-warning'>⚠ No nearby hospitals found.</li>";
+                        } else {
+                            data.forEach(h => {
+                                const li = document.createElement("li");
+                                li.className = "list-group-item";
+                                li.innerHTML = `<strong>${h.name}</strong><br><small>${h.address}</small>`;
+                                hospitalList.appendChild(li);
+                            });
+                        }
+                    })
+                    .catch(() => {
+                        hospitalList.innerHTML = "<li class='list-group-item text-danger'>⚠ Failed to load hospitals. Try again later.</li>";
                     });
             },
             error => {
-                hospitalList.innerHTML = `<li class='list-group-item text-danger'>⚠️ Location access denied. Enable it to fetch nearby hospitals.</li>`;
+                hospitalList.innerHTML = "<li class='list-group-item text-danger'>⚠ Location access denied. Enable it to fetch nearby hospitals.</li>";
             }
         );
     } else {
-        hospitalList.innerHTML = `<li class='list-group-item text-danger'>⚠️ Geolocation is not supported on this browser.</li>`;
+        hospitalList.innerHTML = "<li class='list-group-item text-danger'>⚠ Geolocation is not supported on this browser.</li>";
     }
 });
 </script>
+
 {% endblock %}

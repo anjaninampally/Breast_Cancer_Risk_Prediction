@@ -1,6 +1,5 @@
 {% extends "base.html" %}
 {% block title %}Login{% endblock %}
-
 {% block content %}
 <div class="d-flex justify-content-center align-items-center min-vh-100">
     <div class="card shadow p-4" style="width: 100%; max-width: 400px;">
@@ -25,14 +24,10 @@
                 <button type="submit" class="btn btn-pink">Login</button>
             </div>
         </form>
-        <p class="mt-3 mb-0 text-center">
-            <div class="mt-3 text-center">
-                <a href="{{ url_for('forgot_password') }}" class="text-pink">Forgot password?</a>
-            </div>
-
-            Don't have an account?
-            <a href="{{ url_for('register') }}" class="text-pink">Register</a>
-        </p>
+        <div class="mt-3 text-center">
+            <a href="{{ url_for('forgot_password') }}" class="text-pink">Forgot password?</a><br>
+            Don't have an account? <a href="{{ url_for('register') }}" class="text-pink">Register</a>
+        </div>
     </div>
 </div>
 {% endblock %}
